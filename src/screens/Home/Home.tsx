@@ -11,7 +11,7 @@ export function Home() {
   }
 
   return <View style={styles.container}>
-    <Pressable style={styles.btn} onPress={toggleSheet}>
+    <Pressable role="button" style={styles.btn} onPress={toggleSheet}>
       <Text style={styles.btnLabel}>
         Abrir BottomSheet
       </Text>
@@ -28,7 +28,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   btn:{
-
+    padding: 8,
+    minHeight: 48,
+    backgroundColor: "blue",
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   btnLabel:{
     color: "#fff"
