@@ -1,5 +1,5 @@
-import React from "react";
-import { View, StyleSheet, Dimensions, Text, Pressable } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { View, StyleSheet, Dimensions, Text, Pressable, findNodeHandle, AccessibilityInfo } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -52,29 +52,67 @@ export function BottomSheet({ onClose, visible }: Props) {
     transform: [{ translateY: offset.value }],
   }));
 
+  const ref = useRef(null);
+  
+  function setFocus() {
+    const reactTag = findNodeHandle(ref.current);
+    
+    if (reactTag) {
+      AccessibilityInfo.setAccessibilityFocus(reactTag);
+    }
+  }
+
+  useEffect(()=>{
+    if(visible){
+      setFocus()
+      setTimeout(()=>{
+     }, 500)
+    }
+  },[visible])
+
   if (!visible) {
     return null;
   }
 
   return (
-    <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.out}>
-      <Pressable style={{flex:1}} onPress={closeBottomSheet} />
+    // <Animated.View 
+    
+    // entering={FadeIn} exiting={FadeOut} style={styles.out}>
+    //   <Pressable
+
+    //     aria-label="Fechar modal"
+    //     role="button"
+    //     accessible
+    //     style={{flex:1}} 
+    //     onPress={closeBottomSheet} />
       <GestureDetector gesture={pan}>
         <Animated.View
           entering={SlideInDown.springify().damping(15)}
           exiting={SlideOutDown}
           style={[styles.container, translateY]}
+          accessibilityViewIsModal={visible}
         >
+          <Pressable aria-label="fechar modal" onPress={closeBottomSheet}>
           <MaterialCommunityIcons
             name="drag-horizontal"
             color="#999"
             size={24}
             style={styles.icon}
           />
-          <Text style={styles.title}>Opcao</Text>
+
+          </Pressable>
+          <View
+          ref={ref}
+          
+          accessible 
+          accessibilityLabel="Modal"
+          >
+
+          <Text accessible style={styles.title}>Opcao</Text>
+          </View>
         </Animated.View>
       </GestureDetector>
-    </Animated.View>
+    // </Animated.View>
   );
 }
 
@@ -92,12 +130,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     margin: 24,
   },
-  out: {
-    width: DIMENSION.width,
-    height: DIMENSION.height,
-    position: "absolute",
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-  },
+  // out: {
+  //   width: DIMENSION.width,
+  //   height: DIMENSION.height,
+  //   position: "absolute",
+  //   backgroundColor: "rgba(0, 0, 0, 0.8)",
+  // },
   icon: {
     marginTop: 16,
     alignSelf: "center",
