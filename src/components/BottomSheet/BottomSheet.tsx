@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Dimensions, Text, Pressable, findNodeHandle, AccessibilityInfo } from "react-native";
+import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { View, StyleSheet, Dimensions, Pressable, ViewProps } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -10,25 +10,59 @@ import Animated, {
   useAnimatedStyle,
   SlideInDown,
   SlideOutDown,
-  FadeIn,
-  FadeOut,
 } from "react-native-reanimated";
+import { useAccessibility } from "@/hook/useAccessibility";
 
 const DIMENSION = Dimensions.get("window");
 export const BOTTOM_SHEET_HEIGHT = 220;
 export const SHEET_OVER_DRAG = 20;
 
-type Props = {
-  onClose: () => void;
-  visible: boolean;
+export interface BottomSheetHandle {
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
+}
+
+
+type Props = ViewProps & {
+  onClose?: () => void;
+  onShow?: () => void;
+  fullscreen?: boolean;
+  children: React.ReactNode;
+  accessibilityButtonClose?:string;
 };
 
-export function BottomSheet({ onClose, visible }: Props) {
+export const BottomSheet = forwardRef<BottomSheetHandle, Props>(function _BottomSheet(props, ref) {
+  const { onClose, onShow, fullscreen = false, children, accessibilityButtonClose="Fechar", ...rest } = props;
+  const [visible, setVisible] = useState(false);
+  const { setAccessibilityFocus } = useAccessibility();
+
+  const _ref = useRef(null);
+
   const offset = useSharedValue(0);
 
   const closeBottomSheet = () => {
     offset.value = 0;
-    onClose();
+    setVisible(false);
+    onClose && onClose();
+  };
+
+  const openBottomSheet = () => {
+    setVisible(true);
+    setAccessibilityFocus(_ref);
+    onShow && onShow();
+  };
+
+  const toggleBottomSheet = () => {
+    setVisible(prev => {
+      if (!prev) {
+        setAccessibilityFocus(_ref);
+        onShow && onShow();
+        return !prev
+      }
+      onClose && onClose();
+      return !prev
+    });
   };
 
   const pan = Gesture.Pan()
@@ -52,69 +86,50 @@ export function BottomSheet({ onClose, visible }: Props) {
     transform: [{ translateY: offset.value }],
   }));
 
-  const ref = useRef(null);
-  
-  function setFocus() {
-    const reactTag = findNodeHandle(ref.current);
-    
-    if (reactTag) {
-      AccessibilityInfo.setAccessibilityFocus(reactTag);
-    }
-  }
-
-  useEffect(()=>{
-    if(visible){
-      setFocus()
-      setTimeout(()=>{
-     }, 500)
-    }
-  },[visible])
+  useImperativeHandle(ref, () => {
+    return {
+      open() {
+        openBottomSheet();
+      },
+      close() {
+        closeBottomSheet();
+      },
+      toggle() {
+        toggleBottomSheet();
+      },
+    };
+  }, []);
 
   if (!visible) {
     return null;
   }
 
   return (
-    // <Animated.View 
-    
-    // entering={FadeIn} exiting={FadeOut} style={styles.out}>
-    //   <Pressable
-
-    //     aria-label="Fechar modal"
-    //     role="button"
-    //     accessible
-    //     style={{flex:1}} 
-    //     onPress={closeBottomSheet} />
-      <GestureDetector gesture={pan}>
-        <Animated.View
-          entering={SlideInDown.springify().damping(15)}
-          exiting={SlideOutDown}
-          style={[styles.container, translateY]}
-          accessibilityViewIsModal={visible}
-        >
-          <Pressable aria-label="fechar modal" onPress={closeBottomSheet}>
+    <GestureDetector gesture={pan}>
+      <Animated.View 
+        entering={SlideInDown.springify().damping(15)}
+        exiting={SlideOutDown}
+        style={[styles.container, translateY, fullscreen && styles.fullScreen]}
+        accessibilityViewIsModal={visible}
+        {...rest}
+      >
+        <Pressable
+          ref={_ref}
+          aria-label={accessibilityButtonClose} role="button" onPress={closeBottomSheet}>
           <MaterialCommunityIcons
             name="drag-horizontal"
             color="#999"
             size={24}
             style={styles.icon}
           />
-
-          </Pressable>
-          <View
-          ref={ref}
-          
-          accessible 
-          accessibilityLabel="Modal"
-          >
-
-          <Text accessible style={styles.title}>Opcao</Text>
-          </View>
-        </Animated.View>
-      </GestureDetector>
-    // </Animated.View>
+        </Pressable>
+        <View>
+          {children}
+        </View>
+      </Animated.View>
+    </GestureDetector>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -124,18 +139,16 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
   },
+  fullScreen: {
+    height: DIMENSION.height,
+  },
+
   title: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
     margin: 24,
   },
-  // out: {
-  //   width: DIMENSION.width,
-  //   height: DIMENSION.height,
-  //   position: "absolute",
-  //   backgroundColor: "rgba(0, 0, 0, 0.8)",
-  // },
   icon: {
     marginTop: 16,
     alignSelf: "center",
