@@ -6,8 +6,6 @@ import { Home } from '@/screens/Home/Home';
 
 
 export default function App() {
-
- 
   return (
     <GestureHandlerRootView style={styles.container}>
       <StatusBar style="light" />
