@@ -1,22 +1,43 @@
-import { BottomSheet } from '@/components/BottomSheet/BottomSheet';
-import React, { useState } from 'react';
+import { BottomSheet, BottomSheetHandle } from '@/components/BottomSheet/BottomSheet';
+import React, { useRef } from 'react';
 import { View, StyleSheet, Pressable, Text } from 'react-native';
 
 
 export function Home() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const toggleSheet = ()=>{
-    setIsOpen(prev => !prev)
-  }
+  const modalRef = useRef<BottomSheetHandle>(null)
 
   return <View style={styles.container}>
-    <Pressable role="button" style={styles.btn} onPress={toggleSheet}>
+    <Pressable role="button" style={styles.btn} onPress={()=>{
+      modalRef.current?.open()
+    }}>
       <Text style={styles.btnLabel}>
-        Abrir BottomSheet
+        Abrir modal
       </Text>
     </Pressable>
-    <BottomSheet visible={isOpen} onClose={toggleSheet}/>
+    <Pressable role="button" style={styles.btn} onPress={()=>{
+      modalRef.current?.toggle()
+    }}>
+      <Text style={styles.btnLabel}>
+        Alternar modal
+      </Text>
+    </Pressable>
+    <Pressable role="button" style={styles.btn} onPress={()=>{
+      modalRef.current?.close()
+    }}>
+      <Text style={styles.btnLabel}>
+        Fechar Modal
+      </Text>
+    </Pressable>
+    <BottomSheet 
+    ref={modalRef}
+    fullscreen={false} 
+    onClose={()=>{
+      alert('onClose')
+    }} onShow={()=>{
+      alert('onShow')
+    }}>
+      <Text>Olá mundo</Text>
+    </BottomSheet>
   </View>
 }
 
@@ -26,10 +47,12 @@ const styles = StyleSheet.create({
     backgroundColor:'#121212',
     alignItems: 'center',
     justifyContent: 'center',
+    gap:8
   },
   btn:{
     padding: 8,
     minHeight: 48,
+    minWidth: 200,
     backgroundColor: "blue",
     alignItems: 'center',
     justifyContent: 'center'
