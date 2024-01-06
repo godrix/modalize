@@ -4,26 +4,32 @@ import { View, StyleSheet, Pressable, Text } from 'react-native';
 
 
 export function Home() {
-  const modalRef = useRef<BottomSheetHandle>(null)
+  const modalRef = useRef<BottomSheetHandle>(null);
+
+  const handleOpenModal = ()=>{
+    modalRef.current?.open();
+  }
+
+  const handleCloseModal = ()=>{
+    modalRef.current?.close();
+  }
+
+  const handleToggleModal = ()=>{
+    modalRef.current?.toggle();
+  }
 
   return <View style={styles.container}>
-    <Pressable role="button" style={styles.btn} onPress={()=>{
-      modalRef.current?.open()
-    }}>
+    <Pressable role="button" style={styles.btn} onPress={handleOpenModal}>
       <Text style={styles.btnLabel}>
         Abrir modal
       </Text>
     </Pressable>
-    <Pressable role="button" style={styles.btn} onPress={()=>{
-      modalRef.current?.toggle()
-    }}>
+    <Pressable role="button" style={styles.btn} onPress={handleToggleModal}>
       <Text style={styles.btnLabel}>
         Alternar modal
       </Text>
     </Pressable>
-    <Pressable role="button" style={styles.btn} onPress={()=>{
-      modalRef.current?.close()
-    }}>
+    <Pressable role="button" style={styles.btn} onPress={handleCloseModal}>
       <Text style={styles.btnLabel}>
         Fechar Modal
       </Text>
