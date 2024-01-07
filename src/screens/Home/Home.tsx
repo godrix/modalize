@@ -34,14 +34,7 @@ export function Home() {
         Fechar Modal
       </Text>
     </Pressable>
-    <BottomSheet 
-    ref={modalRef}
-    fullscreen={false} 
-    onClose={()=>{
-      alert('onClose')
-    }} onShow={()=>{
-      alert('onShow')
-    }}>
+    <BottomSheet ref={modalRef}>
       <Text>Olá mundo</Text>
     </BottomSheet>
   </View>
